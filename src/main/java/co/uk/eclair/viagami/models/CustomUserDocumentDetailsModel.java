@@ -1,19 +1,18 @@
 package co.uk.eclair.viagami.models;
 
-import co.uk.eclair.viagami.documents.User;
+import co.uk.eclair.viagami.documents.UserDocument;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Date;
 
 /**
  * Created by ${Eclair} on 8/21/2018.
  */
-public class CustomUserDetailsModel extends User implements UserDetails {
+public class CustomUserDocumentDetailsModel extends UserDocument implements UserDetails {
 
-    public CustomUserDetailsModel(User user) {
-        super(user);
+    public CustomUserDocumentDetailsModel(UserDocument userDocument) {
+        super(userDocument);
     }
 
     @Override

@@ -1,7 +1,11 @@
 package co.uk.eclair.viagami.documents;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -13,28 +17,27 @@ import java.util.Set;
  */
 
 @Document(collection="users")
-public class User {
+public class UserDocument {
     @Id
     private long id;
     private String name;
     private String email;
     private String password;
-
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date createdDate;
-
+    @DBRef
     private Set<Role> roles;
 
-    public User() {
+    public UserDocument() {
     }
 
-    public User(User user) {
-        this.setId(user.getId());
-        this.setName(user.getName());
-        this.setEmail(user.getEmail());
-        this.setPassword(user.getPassword());
-        this.setCreatedDate(user.getCreatedDate());
-        this.setRoles(user.getRoles());
+    public UserDocument(UserDocument userDocument) {
+        this.setId(userDocument.getId());
+        this.setName(userDocument.getName());
+        this.setEmail(userDocument.getEmail());
+        this.setPassword(userDocument.getPassword());
+        this.setCreatedDate(userDocument.getCreatedDate());
+        this.setRoles(userDocument.getRoles());
     }
 
     public long getId() {
@@ -83,6 +86,20 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public String toString(){
+        ObjectMapper mapper = new ObjectMapper();
+
+        String jsonString = "";
+        try {
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            jsonString = mapper.writeValueAsString(this);
+        }catch(JsonProcessingException e){
+            e.printStackTrace();
+        }
+        return jsonString;
     }
 }
 
