@@ -1,6 +1,4 @@
-package co.uk.eclair.viagami.errors;
-
-import java.util.function.Supplier;
+package co.uk.eclair.viagami.exception;
 
 /**
  * Created by ${Eclair} on 8/26/2018.

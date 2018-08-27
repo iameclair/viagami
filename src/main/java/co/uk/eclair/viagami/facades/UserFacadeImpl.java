@@ -2,7 +2,7 @@ package co.uk.eclair.viagami.facades;
 
 import co.uk.eclair.viagami.documents.Role;
 import co.uk.eclair.viagami.documents.UserDocument;
-import co.uk.eclair.viagami.errors.ViagamiRoleNotFoundException;
+import co.uk.eclair.viagami.exception.ViagamiRoleNotFoundException;
 import co.uk.eclair.viagami.services.RoleDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

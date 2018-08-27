@@ -1,4 +1,4 @@
-package co.uk.eclair.viagami.errors;
+package co.uk.eclair.viagami.exception;
 
 /**
  * Created by ${Eclair} on 8/21/2018.

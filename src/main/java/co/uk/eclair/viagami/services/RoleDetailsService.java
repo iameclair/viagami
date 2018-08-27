@@ -1,7 +1,7 @@
 package co.uk.eclair.viagami.services;
 
 import co.uk.eclair.viagami.documents.Role;
-import co.uk.eclair.viagami.errors.ViagamiRoleNotFoundException;
+import co.uk.eclair.viagami.exception.ViagamiRoleNotFoundException;
 
 /**
  * Created by ${Eclair} on 8/26/2018.
