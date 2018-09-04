@@ -6,6 +6,7 @@ import co.uk.eclair.viagami.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
@@ -21,13 +22,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+
 /**
  * Created by ${Eclair} on 8/21/2018.
  */
+@EnableMongoRepositories(basePackages = "co.uk.eclair.viagami.repositories")
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
-        securedEnabled = true, jsr250Enabled = true, prePostEnabled = true
+        securedEnabled = true,
+        jsr250Enabled = true,
+        prePostEnabled = true
 )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
@@ -36,11 +41,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private JWTAuthenticationEntryPoint unauthorizedHandler;
-
-    @Bean
-    public JWTAuthenticationFilter jwtAuthenticationFilter(){
-        return new JWTAuthenticationFilter();
-    }
+    @Autowired
+    private JWTAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Authentication builder
@@ -95,10 +97,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated();
 
         // Add our custom JWT security filter
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
-   @Bean
+    /**
+     * Cors configuration source cors configuration source.
+     *
+     * @return the cors configuration source
+     */
+    @Bean
     CorsConfigurationSource corsConfigurationSource() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
