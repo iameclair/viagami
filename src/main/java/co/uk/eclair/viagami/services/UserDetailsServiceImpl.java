@@ -1,5 +1,6 @@
 package co.uk.eclair.viagami.services;
 
+import co.uk.eclair.viagami.documents.PasswordResetToken;
 import co.uk.eclair.viagami.documents.UserDocument;
 import co.uk.eclair.viagami.security.UserPrincipal;
 import co.uk.eclair.viagami.repositories.UserRepository;
@@ -39,5 +40,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         );
 
         return UserPrincipal.create(userDocument);
+    }
+
+    public void createPasswordResetTokenForUser(UserDocument userDocument, String token){
+        PasswordResetToken theToken = new PasswordResetToken(token, userDocument);
+
     }
 }

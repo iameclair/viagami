@@ -1,5 +1,6 @@
 package co.uk.eclair.viagami.controllers;
 import co.uk.eclair.viagami.documents.UserDocument;
+import co.uk.eclair.viagami.exception.UserNotFoundException;
 import co.uk.eclair.viagami.facades.UserFacade;
 import co.uk.eclair.viagami.payload.ApiResponse;
 import co.uk.eclair.viagami.payload.JWTAuthenticationResponse;
@@ -7,6 +8,7 @@ import co.uk.eclair.viagami.payload.LoginRequest;
 import co.uk.eclair.viagami.payload.SignUpRequest;
 import co.uk.eclair.viagami.repositories.UserRepository;
 import co.uk.eclair.viagami.security.JWTTokenProvider;
+import co.uk.eclair.viagami.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -15,13 +17,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by ${Eclair} on 8/19/2018.
@@ -41,6 +48,8 @@ public class AuthController {
     private UserFacade userFacade;
     @Autowired
     private JWTTokenProvider tokenProvider;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest){
@@ -73,6 +82,16 @@ public class AuthController {
         return ResponseEntity.created(location).body(new ApiResponse(true, "account registered"));
     }
 
+    @PostMapping("/resetpassword")
+    public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email){
+        Optional<UserDocument> userDocument = userRepository.findByEmail(email);
+        userDocument.orElseThrow(() -> new UsernameNotFoundException("user not found exception"));
+        String token = UUID.randomUUID().toString();
+        userDetailsService.createPasswordResetTokenForUser(userDocument.get(), token);
+        //send email
+        //return response
+        return null;
+    }
     @GetMapping("/all")
     public List<UserDocument> getAll() {
         return userRepository.findAll();
