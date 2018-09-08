@@ -41,9 +41,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return UserPrincipal.create(userDocument);
     }
-
-    public void createPasswordResetTokenForUser(UserDocument userDocument, String token){
-        PasswordResetToken theToken = new PasswordResetToken(token, userDocument);
-
-    }
 }

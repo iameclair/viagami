@@ -1,4 +1,5 @@
 package co.uk.eclair.viagami.controllers;
+import co.uk.eclair.viagami.documents.PasswordResetToken;
 import co.uk.eclair.viagami.documents.UserDocument;
 import co.uk.eclair.viagami.exception.UserNotFoundException;
 import co.uk.eclair.viagami.facades.UserFacade;
@@ -6,9 +7,13 @@ import co.uk.eclair.viagami.payload.ApiResponse;
 import co.uk.eclair.viagami.payload.JWTAuthenticationResponse;
 import co.uk.eclair.viagami.payload.LoginRequest;
 import co.uk.eclair.viagami.payload.SignUpRequest;
+import co.uk.eclair.viagami.repositories.PasswordTokenRepository;
 import co.uk.eclair.viagami.repositories.UserRepository;
 import co.uk.eclair.viagami.security.JWTTokenProvider;
+import co.uk.eclair.viagami.services.EmailServiceImpl;
+import co.uk.eclair.viagami.services.PasswordResetServiceImpl;
 import co.uk.eclair.viagami.services.UserDetailsServiceImpl;
+import co.uk.eclair.viagami.utilities.Mail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -50,6 +55,15 @@ public class AuthController {
     private JWTTokenProvider tokenProvider;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private PasswordResetServiceImpl passwordResetService;
+    @Autowired
+    private PasswordTokenRepository passwordTokenRepository;
+    @Autowired
+    private EmailServiceImpl emailService;
+
+    private static final String FROM = "viagamiteam@gmail.com";
+    private static final String SUBJECT_PASSWORD_RESET = "Reset Your Password";
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest){
@@ -82,13 +96,22 @@ public class AuthController {
         return ResponseEntity.created(location).body(new ApiResponse(true, "account registered"));
     }
 
-    @PostMapping("/resetpassword")
-    public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email){
+    @PostMapping("/getemail")
+    public ResponseEntity<?> getEmailFromUser(@RequestBody String email){
         Optional<UserDocument> userDocument = userRepository.findByEmail(email);
         userDocument.orElseThrow(() -> new UsernameNotFoundException("user not found exception"));
         String token = UUID.randomUUID().toString();
-        userDetailsService.createPasswordResetTokenForUser(userDocument.get(), token);
-        //send email
+        PasswordResetToken passwordResetToken = passwordResetService.createPasswordResetTokenForUser(userDocument.get(), token);
+        PasswordResetToken result =  passwordTokenRepository.save(passwordResetToken);
+        //send email using the email service
+        Mail mail = new Mail(FROM, userDocument.get().getEmail(), SUBJECT_PASSWORD_RESET, passwordResetToken.getToken());
+        emailService.sendMessage(mail);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/resetpassword")
+    public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email){
+
         //return response
         return null;
     }
