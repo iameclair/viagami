@@ -12,7 +12,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 /**
  * Created by ${Eclair} on 8/19/2018.
  */
-@EnableMongoRepositories(basePackages = "co.uk.eclair.viagami.repositories")
 @Configuration
 public class MongoDBConfig {
    /* @Bean
