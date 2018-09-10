@@ -3,12 +3,12 @@ package co.uk.eclair.viagami.payload;
 /**
  * Created by ${Eclair} on 8/27/2018.
  */
-public class JWTAuthenticationResponse {
+public class JWTAuthenticationResponseDTO {
 
     private String accessToken;
     private String tokenType = "Bearer";
 
-    public JWTAuthenticationResponse(String accessToken) {
+    public JWTAuthenticationResponseDTO(String accessToken) {
         this.accessToken = accessToken;
     }
 
