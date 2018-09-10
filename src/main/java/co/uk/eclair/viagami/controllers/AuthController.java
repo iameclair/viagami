@@ -1,12 +1,8 @@
 package co.uk.eclair.viagami.controllers;
 import co.uk.eclair.viagami.documents.PasswordResetToken;
 import co.uk.eclair.viagami.documents.UserDocument;
-import co.uk.eclair.viagami.exception.UserNotFoundException;
 import co.uk.eclair.viagami.facades.UserFacade;
-import co.uk.eclair.viagami.payload.ApiResponse;
-import co.uk.eclair.viagami.payload.JWTAuthenticationResponse;
-import co.uk.eclair.viagami.payload.LoginRequest;
-import co.uk.eclair.viagami.payload.SignUpRequest;
+import co.uk.eclair.viagami.payload.*;
 import co.uk.eclair.viagami.repositories.PasswordTokenRepository;
 import co.uk.eclair.viagami.repositories.UserRepository;
 import co.uk.eclair.viagami.security.JWTTokenProvider;
@@ -22,15 +18,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -62,43 +57,43 @@ public class AuthController {
     @Autowired
     private EmailServiceImpl emailService;
 
-    private static final String FROM = "viagamiteam@gmail.com";
+    private static final String FROM = "eclairlumu@gmail.com";
     private static final String SUBJECT_PASSWORD_RESET = "Reset Your Password";
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequestDTO){
         Authentication authentication = authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(
-                  loginRequest.getEmail(),
-                  loginRequest.getPassword()
+                  loginRequestDTO.getEmail(),
+                  loginRequestDTO.getPassword()
           )
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JWTAuthenticationResponse(jwt));
+        return ResponseEntity.ok(new JWTAuthenticationResponseDTO(jwt));
     }
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest){
-        if(userRepository.existsByEmail(signUpRequest.getEmail())){
-            return new ResponseEntity<>(new ApiResponse(false, "Email is already exist!"),
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO){
+        if(userRepository.existsByEmail(signUpRequestDTO.getEmail())){
+            return new ResponseEntity<>(new ApiResponseDTO(false, "Email is already exist!"),
                     HttpStatus.BAD_REQUEST);
         }
         UserDocument userDocument = new UserDocument();
-        userDocument.setEmail(signUpRequest.getEmail());
-        userDocument.setName(signUpRequest.getName());
-        userDocument.setPassword(bCryptPasswordEncoder.encode(signUpRequest.getPassword()));
+        userDocument.setEmail(signUpRequestDTO.getEmail());
+        userDocument.setName(signUpRequestDTO.getName());
+        userDocument.setPassword(bCryptPasswordEncoder.encode(signUpRequestDTO.getPassword()));
         userFacade.saveUserDocument(userDocument);
         UserDocument result = userRepository.save(userDocument);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getEmail()).toUri();
 
-        return ResponseEntity.created(location).body(new ApiResponse(true, "account registered"));
+        return ResponseEntity.created(location).body(new ApiResponseDTO(true, "account registered"));
     }
 
     @PostMapping("/getemail")
-    public ResponseEntity<?> getEmailFromUser(@RequestBody String email){
-        Optional<UserDocument> userDocument = userRepository.findByEmail(email);
+    public ResponseEntity<?> getEmailFromUser(@Valid @RequestBody EmailRequestDTO email){
+        Optional<UserDocument> userDocument = userRepository.findByEmail(email.getEmail());
         userDocument.orElseThrow(() -> new UsernameNotFoundException("user not found exception"));
         String token = UUID.randomUUID().toString();
         PasswordResetToken passwordResetToken = passwordResetService.createPasswordResetTokenForUser(userDocument.get(), token);
@@ -109,9 +104,30 @@ public class AuthController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/resetpassword")
-    public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email){
+    @PostMapping("/send/{token}")
+    public ResponseEntity<?> sendToken(@PathVariable("token") String token){
+        Optional<PasswordResetToken> passwordResetToken = passwordTokenRepository.findByToken(token);
+        final PasswordResetTokenResponseDTO result = new PasswordResetTokenResponseDTO();
+        if (passwordResetToken.isPresent()) {
+            Long diff = passwordResetToken.get().getExpiryDate().getTime() - new Date().getTime();
+            if(diff > 0){
+                result.setTokenIsValid(true);
+                result.setTokenIsPresent(true);
+                result.setToken(token);
+                return ResponseEntity.ok(result);
+            }
+        }else{
+            result.setTokenIsPresent(false);
+            result.setTokenIsValid(false);
+            result.setToken(null);
+        }
+        return ResponseEntity.ok(result);
+    }
 
+    @PostMapping("/resetpassword/{token}")
+    public ResponseEntity<?> resetPassword(@PathVariable("token") String token, @RequestBody ResetPasswordRequestDTO resetPassword){
+        //find the user
+        //change password
         //return response
         return null;
     }
