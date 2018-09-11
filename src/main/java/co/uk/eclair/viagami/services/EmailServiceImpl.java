@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +18,14 @@ import java.util.Date;
  */
 @Component
 public class EmailServiceImpl implements EmailService{
-    private JavaMailSender javaMailSender = new JavaMailSenderImpl();
-    final MimeMessage mimeMailMessage = javaMailSender.createMimeMessage();
-    final MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMailMessage, true);
+    @Autowired
+    private JavaMailSender javaMailSender;
+   // final MimeMessage mimeMailMessage = javaMailSender.createMimeMessage();
+   // final MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMailMessage, true);
+
+    public EmailServiceImpl(JavaMailSender javaMailSender) throws MessagingException {
+        this.javaMailSender = javaMailSender;
+    }
 
     public EmailServiceImpl() throws MessagingException {
     }
@@ -38,13 +42,13 @@ public class EmailServiceImpl implements EmailService{
     }
     @Override
     public void sendMessageWithAttachment(Mail mail) throws MessagingException {
-        mimeMessageHelper.setTo(mail.getTo());
+       /* mimeMessageHelper.setTo(mail.getTo());
         mimeMessageHelper.setSubject(mail.getSubject());
         mimeMessageHelper.setText(mail.getContent());
         mimeMessageHelper.setSentDate(new Date());
 
         FileSystemResource fileSystemResource = new FileSystemResource(new File(mail.getAttachementPath()));
         mimeMessageHelper.addAttachment("Attachment", fileSystemResource);
-        javaMailSender.send(mimeMailMessage);
+        javaMailSender.send(mimeMailMessage);*/
     }
 }

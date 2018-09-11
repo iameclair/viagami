@@ -16,9 +16,9 @@ import java.util.Date;
 public class JWTTokenProvider {
     private static final Logger logger = LoggerFactory.getLogger(JWTTokenProvider.class);
 
-    @Value("${app.jwtSecret}")
+    @Value("${viagami.jwtSecret}")
     private String jwtSecret;
-    @Value("${app.jwtExpirationTime}")
+    @Value("${viagami.jwtExpirationTime}")
     private int jwtExpirationTime;
 
     public String generateToken(Authentication authentication){

@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 /**
  * Created by ${Eclair} on 9/9/2018.
  */
-public class EmailRequest {
+public class EmailRequestDTO {
     @NotBlank
     @Email
     private String email;

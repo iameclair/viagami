@@ -3,11 +3,11 @@ package co.uk.eclair.viagami.payload;
 /**
  * Created by ${Eclair} on 9/3/2018.
  */
-public class PasswordResetResponse {
+public class PasswordResetResponseDTO {
     private String message;
     private String error;
 
-    public PasswordResetResponse(String message) {
+    public PasswordResetResponseDTO(String message) {
         this.message = message;
     }
 
