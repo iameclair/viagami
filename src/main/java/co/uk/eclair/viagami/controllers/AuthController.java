@@ -4,6 +4,7 @@ import co.uk.eclair.viagami.documents.UserDocument;
 import co.uk.eclair.viagami.exception.UserNotFoundException;
 import co.uk.eclair.viagami.facades.UserFacade;
 import co.uk.eclair.viagami.payload.ApiResponse;
+import co.uk.eclair.viagami.payload.EmailRequest;
 import co.uk.eclair.viagami.payload.JWTAuthenticationResponse;
 import co.uk.eclair.viagami.payload.LoginRequest;
 import co.uk.eclair.viagami.payload.SignUpRequest;
@@ -97,8 +98,8 @@ public class AuthController {
     }
 
     @PostMapping("/getemail")
-    public ResponseEntity<?> getEmailFromUser(@RequestBody String email){
-        Optional<UserDocument> userDocument = userRepository.findByEmail(email);
+    public ResponseEntity<?> getEmailFromUser(@RequestBody EmailRequest email){
+        Optional<UserDocument> userDocument = userRepository.findByEmail(email.getEmail());
         userDocument.orElseThrow(() -> new UsernameNotFoundException("user not found exception"));
         String token = UUID.randomUUID().toString();
         PasswordResetToken passwordResetToken = passwordResetService.createPasswordResetTokenForUser(userDocument.get(), token);
