@@ -61,7 +61,7 @@ public class AuthController {
     private static final String SUBJECT_PASSWORD_RESET = "Reset Your Password";
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequestDTO){
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO){
         Authentication authentication = authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(
                   loginRequestDTO.getEmail(),
@@ -73,7 +73,7 @@ public class AuthController {
         return ResponseEntity.ok(new JWTAuthenticationResponseDTO(jwt));
     }
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO){
+    public ResponseEntity<?> register(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO){
         if(userRepository.existsByEmail(signUpRequestDTO.getEmail())){
             return new ResponseEntity<>(new ApiResponseDTO(false, "Email is already exist!"),
                     HttpStatus.BAD_REQUEST);
@@ -124,13 +124,43 @@ public class AuthController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/resetpassword/{token}")
+    @PutMapping("/resetpassword/{token}")
     public ResponseEntity<?> resetPassword(@PathVariable("token") String token, @RequestBody ResetPasswordRequestDTO resetPassword){
-        //find the user
-        //change password
-        //return response
-        return null;
+        Optional<PasswordResetToken> passwordResetToken = passwordTokenRepository.findByToken(token);
+        ApiResponseDTO response = null;
+        if(passwordResetToken.isPresent()){
+           UserDocument userDocument = passwordResetToken.get().getUserDocument();
+           if(resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())){
+               userDocument.setPassword(resetPassword.getNewPassword());
+               UserDocument result = userRepository.save(userDocument);
+               if(result.getId() == userDocument.getId()){
+                   response = new ApiResponseDTO(true, "password reset successfully");
+                   passwordTokenRepository.delete(passwordResetToken.get());
+               }
+           }else{
+               response = new ApiResponseDTO(false, "password do not much");
+           }
+        }
+        return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/changepassword/{id}")
+    public ResponseEntity<?> changePassword(@PathVariable("id") Long id, @RequestBody ChangePasswordRequestDTO passwordRequestDTO){
+        Optional<UserDocument> userDocument = userRepository.findById(id);
+        ApiResponseDTO response = null;
+        userDocument.orElseThrow(() -> new UsernameNotFoundException("user is not found"));
+        if(userDocument.get().getPassword().equals(passwordRequestDTO.getOldPassword())){
+            if(passwordRequestDTO.getNewPassword().equals(passwordRequestDTO.getConfirmPassword()))
+            {
+                userDocument.get().setPassword(passwordRequestDTO.getNewPassword());
+                response = new ApiResponseDTO(true, "password changed successfully");
+            }
+        }else{
+            response = new ApiResponseDTO(false, "password are not the same");
+        }
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/all")
     public List<UserDocument> getAll() {
         return userRepository.findAll();
